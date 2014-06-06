@@ -14,7 +14,8 @@ const server = restify.createServer({
   version: package.version,
   log: logger,
 });
-
+var dotenv = require('dotenv');
+dotenv.load() 
 server.pre(restify.pre.sanitizePath());
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser({mapParams: false}));
