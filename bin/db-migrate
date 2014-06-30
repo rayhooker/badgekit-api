@@ -60,20 +60,14 @@ function executeCreate() {
   migrate.createMigration(argv.title, migrations.dir, function(err, migration) {
     assert.ifError(err);
     log.info(util.format('Created migration at %s', migration.path));
-<<<<<<< HEAD
-=======
-    process.exit(0);
->>>>>>> cf64876222187bf9d3a4c5518dbb5a9d155e9faa
+    process.exit(0); 
   });
 }
 
 function onComplete(err) {
   assert.ifError(err);
-  log.info('Done');
-<<<<<<< HEAD
-=======
-  process.exit(0)
->>>>>>> cf64876222187bf9d3a4c5518dbb5a9d155e9faa
+  log.info('Done'); 
+  process.exit(0) 
 }
 
 function run() {
@@ -83,14 +77,9 @@ function run() {
       executeCreate();
       break;
     case 'up':
-    case 'down':
-<<<<<<< HEAD
-      argv.config = db.getDbConfig('DATABASE');
-      if(verbose) {
-=======
+    case 'down': 
       argv.config = db.getDbConfig();
-      if(argv.verbose) {
->>>>>>> cf64876222187bf9d3a4c5518dbb5a9d155e9faa
+      if(argv.verbose) { 
         log.info("Using settings:", argv.config);
       }
       if(argv._.length > 0) {
