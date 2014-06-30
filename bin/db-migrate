@@ -8,7 +8,7 @@ var optimist = require('optimist');
 var migrate = require('db-migrate');
 var log = require('db-migrate/lib/log');
 var mysql = require('mysql');
-var migrations = require('../lib/migrations');
+var migrations = require('../app/lib/migrations'); 
 var db = require('../app/lib/db');
 
 process.on('uncaughtException', function(err) {
@@ -60,12 +60,20 @@ function executeCreate() {
   migrate.createMigration(argv.title, migrations.dir, function(err, migration) {
     assert.ifError(err);
     log.info(util.format('Created migration at %s', migration.path));
+<<<<<<< HEAD
+=======
+    process.exit(0);
+>>>>>>> cf64876222187bf9d3a4c5518dbb5a9d155e9faa
   });
 }
 
 function onComplete(err) {
   assert.ifError(err);
   log.info('Done');
+<<<<<<< HEAD
+=======
+  process.exit(0)
+>>>>>>> cf64876222187bf9d3a4c5518dbb5a9d155e9faa
 }
 
 function run() {
@@ -76,8 +84,13 @@ function run() {
       break;
     case 'up':
     case 'down':
+<<<<<<< HEAD
       argv.config = db.getDbConfig('DATABASE');
       if(verbose) {
+=======
+      argv.config = db.getDbConfig();
+      if(argv.verbose) {
+>>>>>>> cf64876222187bf9d3a4c5518dbb5a9d155e9faa
         log.info("Using settings:", argv.config);
       }
       if(argv._.length > 0) {

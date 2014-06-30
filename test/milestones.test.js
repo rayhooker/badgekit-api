@@ -1,14 +1,34 @@
 const test = require('tap').test
 const app = require('../')
 const spawn = require('./spawn')
+const Milestones = require('../app/models/milestone')
 const MilestoneBadges = require('../app/models/milestone-badge')
 
 spawn(app).then(function (api) {
+  test('DB: Find & award related eligible milestones', function (t) {
+    const email = 'brian+milestone-test@example.org';
+    const badge = { id: 5 };
+    Milestones.findEligible(email, badge)
+      .then(function (milestones) {
+        t.same(milestones.length, 1, 'has one eligible milestone');
+        t.same(milestones[0].id, 1, 'has the right milestone');
+        return Milestones.findAndAward(email, badge)
+      })
+      .then(function (results) {
+        t.same(results.length, 1, 'has one instance');
+        t.same(results[0].email, email, 'awarded to right email');
+        t.end()
+      })
+  })
+
   test('Get all milestones', function (t) {
-    api.get('/systems/chicago/milestones')
+    api.get('/systems/chicago/milestones?page=1&count=5')
       .then(function (res) {
         t.same(res.statusCode, 200, '200 OK')
         t.ok(res.body.milestones.length >= 1, 'at least one milestone')
+        t.same(res.body.pageData.page, 1, 'page data should indicate page 1')
+        t.same(res.body.pageData.count, 5, 'page data should indicate a count of 5')
+        t.same(res.body.pageData.total, 2, 'page data should indicate a total of 2')
         t.end()
       })
       .catch(api.fail(t))
@@ -24,6 +44,15 @@ spawn(app).then(function (api) {
         t.end()
       })
       .catch(api.fail(t))
+  })
+
+  test('Get a milestone that does not exist', function (t) {
+    api.get('/systems/chicago/milestones/1910241')
+      .then(function (res) {
+        t.same(res.statusCode, 404, 'HTTP 404')
+        t.same(res.body.code, 'ResourceNotFound')
+        t.end()
+      })
   })
 
   test('Create a new milestone', function (t) {
@@ -62,6 +91,55 @@ spawn(app).then(function (api) {
         t.same(res.body.milestone.numberRequired, 200, 'has correct # required')
         t.same(res.body.milestone.supportBadges.length, 1, 'right number of support badges')
         t.same(res.body.milestone.supportBadges[0].id, 1, 'has correct support badge')
+        t.end()
+      })
+      .catch(api.fail(t))
+  })
+
+  test('Add a badge to a milestone', function (t) {
+    const postData = {badgeId: 4}
+    api.post('/systems/chicago/milestones/1/add-badge', postData)
+      .then(function (res) {
+        t.same(res.statusCode, 200, '200 OK')
+        t.same(res.body.status, 'updated', 'has correct status')
+        t.same(res.body.milestone.supportBadges.length, 2, 'right number of support badges')
+        t.same(res.body.milestone.supportBadges[0].id, 1, 'has correct support badge')
+        t.same(res.body.milestone.supportBadges[1].id, 4, 'has correct support badge')
+        return api.post('/systems/chicago/milestones/1/add-badge', postData)
+      })
+      .then(function (res) {
+        t.same(res.statusCode, 200, '200 OK')
+        t.same(res.body.status, 'updated', 'has correct status')
+        t.same(res.body.milestone.supportBadges.length, 2, 'right number of support badges')
+        t.end()
+      })
+      .catch(api.fail(t))
+  })
+
+  test('Add a badge to a milestone that does not exist', function (t) {
+    const postData = {badgeId: 4}
+    api.post('/systems/chicago/milestones/19824/add-badge', postData)
+      .then(function (res) {
+        t.same(res.statusCode, 404, 'HTTP 404')
+        t.same(res.body.code, 'ResourceNotFound')
+        t.end()
+      })
+  })
+
+  test('Remove badge from a milestone', function (t) {
+    const postData = {badgeId: 4}
+    api.post('/systems/chicago/milestones/1/remove-badge', postData)
+      .then(function (res) {
+        t.same(res.statusCode, 200, '200 OK')
+        t.same(res.body.status, 'updated', 'has correct status')
+        t.same(res.body.milestone.supportBadges.length, 1, 'right number of support badges')
+        t.same(res.body.milestone.supportBadges[0].id, 1, 'has correct support badge')
+        return api.post('/systems/chicago/milestones/1/remove-badge', postData)
+      })
+      .then(function (res) {
+        t.same(res.statusCode, 200, '200 OK')
+        t.same(res.body.status, 'updated', 'has correct status')
+        t.same(res.body.milestone.supportBadges.length, 1, 'right number of support badges')
         t.end()
       })
       .catch(api.fail(t))
